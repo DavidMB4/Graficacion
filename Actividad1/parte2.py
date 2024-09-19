@@ -5,11 +5,11 @@ import math
 img=cv.imread('C:/Users/david/OneDrive/Documentos/Tec/5 Semestre/Graficacion/Repositorio/Actividad1/pokeball.png', 0)
 x, y=img.shape
 center_X, center_y = (x // 2, y // 2)
-angle = 60
-scale_x, scale_y = 0.5, 0.5
-dx, dy = 10, 10
+angle = 70
+scale_x, scale_y = 2, 2
+dx, dy = 20, 20
 
-img2 = np.zeros((x, y), dtype=np.uint8)
+img2 = np.zeros((int(x*2.5),int(y*2.5)), dtype=np.uint8)
 xx, yy = img2.shape
 theta = math.radians(angle)
 
