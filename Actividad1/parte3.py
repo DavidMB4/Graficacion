@@ -18,7 +18,7 @@ for i in range(x):
         
         x2 = int((int((j - center_X) * math.cos(theta) - (i - center_y) * math.sin(theta) + center_X))*scale_x)+dx
         y2 = int((int((j - center_X) * math.sin(theta) + (i - center_y) * math.cos(theta) + center_y))*scale_y)+dy
-        if 0 <= x2 < y and 0 <= y2 < x:
+        if 0 <= x2 < int(y*2.5) and 0 <= y2 < int(x*2.5):
             img2[y2, x2] = img[i, j]
         
 cv.imshow('img', img)
