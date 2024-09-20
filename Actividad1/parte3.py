@@ -10,7 +10,6 @@ scale_x, scale_y = 2, 2
 dx, dy = 20, 20
 
 img2 = np.zeros((int(x*2.5),int(y*2.5)), dtype=np.uint8)
-xx, yy = img2.shape
 theta = math.radians(angle)
 
 for i in range(x):
