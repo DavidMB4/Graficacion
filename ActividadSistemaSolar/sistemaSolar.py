@@ -52,12 +52,20 @@ for t in t_vals:
     veunsPunto = generar_punto_elipse(venus_ejeMayor, venus_ejeMenor, t_venus)
     tierraPunto = generar_punto_elipse(tierra_ejeMayor, tierra_ejeMenor, t_tierra)
     martePunto = generar_punto_elipse(marte_ejeMayor, marte_ejeMenor, t_marte)
+    jupiterPunto = generar_punto_elipse(jupiter_ejeMayor, marte_ejeMenor, t_marte)
+    saturnoPunto = generar_punto_elipse(saturno_ejeMayor, saturno_ejeMenor, t_saturno)
+    uranoPunto = generar_punto_elipse(urano_ejeMayor, urano_ejeMenor, t_urano)
+    neptunoPunto = generar_punto_elipse(neptuno_ejeMayor, neptuno_ejeMenor, t_neptuno)
     
 
     cv2.circle(imagen, mercurioPunto, radius=5, color=(126, 200, 243), thickness=-1)
     cv2.circle(imagen, veunsPunto, radius=10, color=(0, 100, 158), thickness=-1)
     cv2.circle(imagen, tierraPunto, radius=10, color=(76, 201, 166), thickness=-1)
     cv2.circle(imagen, martePunto, radius=10, color=(5, 80, 210), thickness=-1)
+    cv2.circle(imagen, jupiterPunto, radius=5, color=(145, 218, 251), thickness=-1)
+    cv2.circle(imagen, saturnoPunto, radius=10, color=(141, 188, 209), thickness=-1)
+    cv2.circle(imagen, uranoPunto, radius=10, color=(243, 242, 169), thickness=-1)
+    cv2.circle(imagen, neptunoPunto, radius=10, color=(221, 111, 60), thickness=-1)
     
 
     for t_tray in t_vals:
@@ -72,6 +80,18 @@ for t in t_vals:
         
         pt_tray_marte = generar_punto_elipse(marte_ejeMayor, marte_ejeMenor, t_tray)
         cv2.circle(imagen, pt_tray_marte, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_jupiter = generar_punto_elipse(jupiter_ejeMayor, jupiter_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_jupiter, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_saturno = generar_punto_elipse(saturno_ejeMayor, saturno_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_saturno, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_urano = generar_punto_elipse(urano_ejeMayor, urano_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_urano, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_neptuno = generar_punto_elipse(neptuno_ejeMayor, neptuno_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_neptuno, radius=1, color=(255, 255, 255), thickness=-1)
     
 
     cv2.imshow('img', imagen)
