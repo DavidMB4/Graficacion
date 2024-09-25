@@ -5,8 +5,8 @@ width, height = 1000, 1000
 img = np.ones((height, width, 3), dtype=np.uint8)*255
 
 a, b = 150, 100  
-k = 2.5
-theta_increment = 0.05  
+k = 7.5
+theta_increment = 0.7  
 max_theta = 2 * np.pi 
 
 center_x, center_y = width // 2, height // 2
@@ -21,8 +21,8 @@ while True:
         x = int(center_x + r * np.cos(t))
         y = int(center_y + r * np.sin(t))
         
-        cv2.circle(img, (x, y), 2, (41, 41, 250), 2) 
-        cv2.circle(img, (x-10, y-10), 2, (250, 83, 41), 2)  
+        cv2.circle(img, (x, y), 2, (0, 235, 247), 2) 
+        cv2.circle(img, (x-10, y-10), 2, (0, 181, 247), 2)  
 
     cv2.imshow("Parametric Animation", img)
     
