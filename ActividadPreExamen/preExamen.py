@@ -4,11 +4,11 @@ import numpy as np
 imagen = cv.imread('salida.png', 1)
 imagenHSV = cv.cvtColor(imagen, cv.COLOR_BGR2HSV)
 
-rangoRojoBajo = np.array(0, 40, 40)
-rangoRojoAlto = np.array(10, 255, 255)
+rangoRojoBajo = np.array([0, 40, 40])
+rangoRojoAlto = np.array([10, 255, 255])
 
-rangoRojoBajo2 = np.array(160, 40, 40)
-rangoRojoAlto2 = np.array(180, 255, 255)
+rangoRojoBajo2 = np.array([160, 40, 40])
+rangoRojoAlto2 = np.array([180, 255, 255])
 
 mascaraRojo1 = cv.inRange(imagenHSV, rangoRojoBajo, rangoRojoAlto)
 mascaraRojo2 = cv.inRange(imagenHSV, rangoRojoBajo2, rangoRojoAlto2)
@@ -29,6 +29,25 @@ rangoAmarilloAlto = np.array([32, 40, 40])
 
 mascaraAmarillo = cv.inRange(imagenHSV, rangoAmarilloBajo, rangoAmarilloAlto)
 
-cv.imshow('EJEMPLO', mascaraAzul)
+alto, ancho, canales = imagen.shape
+print(alto)
+print(ancho)
+
+for y in range(alto):
+    for x in range(ancho):
+        if mascaraRojo[y, x] == 0:
+            mascaraRojo[y, x] = 150
+        else:
+            mascaraRojo[y, x] = 180
+            
+def recorre(x, y):
+    if ()
+
+            
+print(y)
+print(x)
+        
+
+cv.imshow('EJEMPLO', mascaraRojo)
 cv.waitKey(0)
 cv.destroyAllWindows()
