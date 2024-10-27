@@ -42,7 +42,10 @@ pixel = [
 
 pixel_array = np.array(pixel, dtype=np.uint8)
 
+cv2.imwrite('original_pixel_art_grayscale.png', pixel_array)
+scalado = cv2.resize(pixel_array, (pixel_array.shape[1] * 10, pixel_array.shape[0] * 10), interpolation=cv2.INTER_NEAREST)
+cv2.imwrite('scaled_pixel_art_grayscale.png', scalado)
 
-cv2.imshow('Pixel Art', pixel_array)
+cv2.imshow('Pixel Art', scalado)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
