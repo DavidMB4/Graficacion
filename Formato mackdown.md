@@ -165,7 +165,177 @@ cv.waitKey()
 cv.destroyAllWindows()
 
 ~~~
-![Imagen png usada para el ejercicio](https://github.com/DavidMB4/Graficacion/blob/master/Actividad1Transformaciones/pokeball.png)
+![Imagen png usada para el ejercicio](https://github.com/DavidMB4/Graficacion/blob/master/Actividad1Transformaciones/pokeball.png?raw=true)
 
 
-###
+### Actividad dibujo con primitivas
+~~~
+import cv2 as cv
+import numpy as np
+
+img = np.ones((500, 500, 3),dtype=np.uint8)*255 
+
+cv.rectangle(img, (1,1), (500,500), (237, 160, 21), -1)
+
+cv.circle(img, (430, 70), 50, (13, 201, 231), -1)
+cv.circle(img, (250, 555), 180, (2, 200, 11), -1)
+cv.circle(img, (70, 550), 180, (2, 171, 10), -1)
+cv.circle(img, (420, 550), 180, (12, 193, 135), -1)
+cv.rectangle(img, (45,400), (70,350), (1, 71, 109 ), -1)
+cv.rectangle(img, (240,400), (270,335), (1, 71, 109 ), -1)
+cv.rectangle(img, (420,400), (450,340), (1, 71, 109 ), -1)
+cv.circle(img, (58, 340), 35, (0, 255, 174), -1)
+cv.circle(img, (253, 340), 35, (0, 255, 174), -1)
+cv.circle(img, (433, 340), 35, (0, 255, 174), -1)
+cv.circle(img, (40, 340), 5, (8, 48, 231), -1)
+cv.circle(img, (78, 330), 5, (8, 48, 231), -1)
+cv.circle(img, (230, 330), 5, (8, 48, 231), -1)
+cv.circle(img, (270, 330), 5, (8, 48, 231), -1)
+cv.circle(img, (410, 330), 5, (8, 48, 231), -1)
+cv.circle(img, (450, 355), 5, (8, 48, 231), -1)
+
+cv.circle(img, (60, 150), 20, (240, 240, 240 ), -1)
+cv.circle(img, (80, 150), 20, (240, 240, 240 ), -1)
+cv.circle(img, (100, 150), 20, (240, 240, 240 ), -1)
+cv.circle(img, (200, 150), 20, (240, 240, 240 ), -1)
+cv.circle(img, (220, 150), 20, (240, 240, 240 ), -1)
+cv.circle(img, (240, 150), 20, (240, 240, 240 ), -1)
+cv.circle(img, (340, 150), 20, (240, 240, 240 ), -1)
+cv.circle(img, (360, 150), 20, (240, 240, 240 ), -1)
+cv.circle(img, (380, 150), 20, (240, 240, 240 ), -1)
+
+cv.imshow('img', img)
+cv.waitKey()
+cv.destroyAllWindows()
+~~~
+
+### Actividad investigar ecuaciones parametricas
+#### ¿Qué es una ecuación paramétrica?
+
+Una ecuación paramétrica es una forma de mapear múltiples variables en una sola variable. Por tanto, en lugar de coordenadas \( x \) y \( y \), utilizamos coordenadas \( t \).
+
+Por ejemplo:
+Tenemos \( y = x^2 \), que es una ecuación cartesiana con coordenadas \( (x, y) \). Podemos cambiarla, suponiendo que \( x = t \) y \( y = t^2 \). Ahora tenemos las coordenadas \( (t, t^2) \). Esto está en forma paramétrica.
+
+##### Ecuación paramétrica de la circunferencia
+
+Las circunferencias tienen una ecuación general cartesiana. Esta ecuación es \( (x - a)^2 + (y - b)^2 = r^2 \), para una circunferencia con centro \( C(a, b) \) y radio \( r \).
+Una identidad clave que podemos usar al elevar al cuadrado dos valores importantes diferentes es la identidad de la circunferencia unitaria: 
+\[
+\sin^2(\theta) + \cos^2(\theta) = 1
+\]
+
+##### Ecuación paramétrica de la recta
+
+Para expresar la ecuación de una recta, usando un parámetro, se requieren dos cosas:
+- Un punto sobre la recta
+- Un vector
+
+##### Ecuación paramétrica de la elipse
+
+Una elipse con centro en \( (x_0, y_0) \), que se interseca con el eje \( x \) en \( (x_0 \pm a, 0) \), y con el eje \( y \) en \( (0, y_0 \pm b) \), verifica que:
+\[
+\frac{(x - x_0)^2}{a^2} + \frac{(y - y_0)^2}{b^2} = 1
+\]
+
+Una expresión paramétrica es:
+![Imagen ecuación paramétrica elipse](https://github.com/DavidMB4/Graficacion/blob/master/InvestEcParametricas/ecuaicon%20parametrica%20elipse.jpg?raw=true)
+
+##### Otras curvas
+
+La expresión paramétrica de una función permite la construcción de una gran variedad de formas, simplemente variando alguna constante.
+![Imagen otras curvas](https://github.com/DavidMB4/Graficacion/blob/master/InvestEcParametricas/otras%20curvas.jpg?raw=true)
+que, para la cual, dependiendo del ratio a/b pueden obtenerse formas muy diversas.
+
+### Actividad 10 ecuaciones parametricas
+~~~
+import numpy as np
+import cv2
+
+width, height = 1000, 1000  
+img = np.ones((height, width, 3), dtype=np.uint8)*255
+
+a, b = 150, 100  
+k = 0.1608
+theta_increment = 0.05  
+max_theta = 2 * np.pi 
+
+center_x, center_y = width // 2, height // 2
+
+theta = 0  
+
+while True:  
+    img = np.ones((width, height, 3), dtype=np.uint8) * 255
+    
+    for t in np.arange(0, theta, theta_increment):
+        r = a + b * np.cos(k * t)
+        x = int(center_x + r * np.cos(t))
+        y = int(center_y + r * np.sin(t))
+        
+        cv2.circle(img, (x, y), 2, (209, 122, 2), 2) 
+        cv2.circle(img, (x+2, y+2), 2, (0, 0, 0), 2)  
+
+    cv2.imshow("Parametric Animation", img)
+    
+    theta += theta_increment
+
+    if cv2.waitKey(30) & 0xFF == 27: 
+        break
+
+cv2.destroyAllWindows()
+~~~
+![Imagen resultado de ecuacion con k=2.5](https://github.com/DavidMB4/Graficacion/blob/master/ActividadFormasParametricas/Imagen1%20k=2.5.jpg?raw=true)
+
+![Imagen resultado de ecuacion con k=7.5](https://github.com/DavidMB4/Graficacion/blob/master/ActividadFormasParametricas/Imagen2%20k=7.5.jpg?raw=true)
+
+![Imagen resultado de ecuacion con k=1.21](https://github.com/DavidMB4/Graficacion/blob/master/ActividadFormasParametricas/Imagen3%20k=1.21.jpg?raw=true)
+
+![Imagen resultado de ecuacion con k=0.25](https://github.com/DavidMB4/Graficacion/blob/master/ActividadFormasParametricas/Imagen4%20k=0.25.jpg?raw=true)
+
+![Imagen resultado de ecuacion con k=0.89](https://github.com/DavidMB4/Graficacion/blob/master/ActividadFormasParametricas/Imagen5%20k=0.89.jpg?raw=true)
+
+![Imagen resultado de ecuacion con k=100.5](https://github.com/DavidMB4/Graficacion/blob/master/ActividadFormasParametricas/Imagen6%20k=100.5.jpg?raw=true)
+
+![Imagen resultado de ecuacion con k=2.876](https://github.com/DavidMB4/Graficacion/blob/master/ActividadFormasParametricas/Imagen7%20k=2.876.jpg?raw=true)
+
+![Imagen resultado de ecuacion con k=7.321](https://github.com/DavidMB4/Graficacion/blob/master/ActividadFormasParametricas/Imagen8%20k=7.321.jpg?raw=true)
+
+![Imagen resultado de ecuacion con k=0.1608](https://github.com/DavidMB4/Graficacion/blob/master/ActividadFormasParametricas/Imagen9%20k=0.1608.jpg?raw=true)
+
+~~~
+import numpy as np
+import cv2
+
+width, height = 1000, 1000  
+img = np.ones((height, width, 3), dtype=np.uint8)*255
+
+a, b = 250, 200  
+k = 5.5
+theta_increment = 0.05  
+max_theta = 2 * np.pi 
+
+center_x, center_y = width // 2, height // 2
+
+theta = 0  
+
+while True:  
+    img = np.ones((width, height, 3), dtype=np.uint8) * 255
+    
+    for t in np.arange(0, theta, theta_increment):
+        r = a + b * t
+        x = int(center_x + a * np.sin(3 * t + np.pi / 2))
+        y = int(center_y + b * np.sin(2 * t))
+
+        
+        cv2.circle(img, (x, y), 2, (4, 193, 5), 2) 
+        cv2.circle(img, (x+2, y+2), 2, (0, 0, 0), 2)  
+
+    cv2.imshow("Parametric Animation", img)
+    
+    theta += theta_increment
+
+    if cv2.waitKey(30) & 0xFF == 27: 
+        break
+
+cv2.destroyAllWindows()
+~~~
