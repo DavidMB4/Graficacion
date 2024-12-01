@@ -2,6 +2,12 @@
 
 ### Actividad pixelart
 
+Es una matriz que tiene valores de 0 a 255 para poder tomar una escala de grise, como son pocos los pixeles se mostraria una imagen muy pequeña, asi que se usa:
+~~~
+cv2.resize(pixel_array, (pixel_array.shape[1] * 10, pixel_array.shape[0] * 10), interpolation=cv2.INTER_NEAREST)
+~~~
+Para hacer un escalado y que la imagen se vea mejor.
+
 ~~~
 import numpy as np
 import cv2
@@ -59,6 +65,8 @@ cv2.destroyAllWindows()
 
 ##### Parte 1
 
+En esta imagen se hace una rotacion de 60 grados en sentido horario, luego se escala a 0.5 lo que hace que la imagen sea un poco mas pequeña, y por ultimo se mmueve en X y Y 10 pixeles.
+
 ~~~
 import cv2 as cv
 import numpy as np
@@ -89,6 +97,8 @@ cv.destroyAllWindows()
 ~~~
 
 ##### Parte 2
+En esta imagen se escala en 2 lo que significa que es el doble de su tamaño original ya que se multiplica, luego se hace una rotacion en sentido horario a 30 grados, y luego otra en sentido antihorario de 60 grados. Imprimiendo 2 imagenes, una con 30 grados en sentido horario y la otra aplicandole 60 grados en sentido antihorario a la primera.
+
 ~~~
 import cv2 as cv
 import numpy as np
@@ -136,6 +146,8 @@ cv.destroyAllWindows()
 ~~~
 
 ###### Parte 3
+
+En esta imagen se rota en 70 grados en sentido horario, se escala en 2 obteniendo el doble de su tamaño y se traslada 20 pixeles en X y Y.
 ~~~
 import cv2 as cv
 import numpy as np
@@ -165,10 +177,14 @@ cv.waitKey()
 cv.destroyAllWindows()
 
 ~~~
+
+Imagen usada para el ejercicio
 ![Imagen png usada para el ejercicio](https://github.com/DavidMB4/Graficacion/blob/master/Actividad1Transformaciones/pokeball.png?raw=true)
 
 
 ### Actividad dibujo con primitivas
+
+Para hacer una imagen de arboles con manzanas en unas colinas se usan circulos para representar o darle forma a las hojas de los arboles, a las colinas, a las manzanas, se usan 3 ciruclos balncos para las nubes, y para representar el sol. Mientras que para el tronco de los arboles se usan rectangulos cafes.
 ~~~
 import cv2 as cv
 import numpy as np
@@ -247,7 +263,9 @@ La expresión paramétrica de una función permite la construcción de una gran 
 ![Imagen otras curvas](https://github.com/DavidMB4/Graficacion/blob/master/InvestEcParametricas/otras%20curvas.jpg?raw=true)
 que, para la cual, dependiendo del ratio a/b pueden obtenerse formas muy diversas.
 
-### Actividad 10 ecuaciones parametricas
+### Actividad hacer 10 ecuaciones parametricas
+
+Para hacer las primeras 9 se usan diferentes valores para k:
 ~~~
 import numpy as np
 import cv2
@@ -302,6 +320,14 @@ cv2.destroyAllWindows()
 
 ![Imagen resultado de ecuacion con k=0.1608](https://github.com/DavidMB4/Graficacion/blob/master/ActividadFormasParametricas/Imagen9%20k=0.1608.jpg?raw=true)
 
+Para la ultima imagen (10) se modifico la ecuacion completa 
+
+~~~
+    r = a + b * t
+    x = int(center_x + a * np.sin(3 * t + np.pi / 2))
+    y = int(center_y + b * np.sin(2 * t))
+~~~
+
 ~~~
 import numpy as np
 import cv2
@@ -338,4 +364,193 @@ while True:
         break
 
 cv2.destroyAllWindows()
+~~~
+
+### Actividad acomodar mascara de gas
+Para acomodadr la mascara mejor en la camara usé:
+~~~
+traslacion_x = 10
+traslacion_y = 25
+~~~
+
+En la region de interes (ROI) del frame
+~~~
+# Crear una región de interés (ROI) en el frame donde colocaremos la máscara
+        roi = frame[y - traslacion_y:y - traslacion_y + h + movimientoY, x:x + w + movimientoX]
+~~~
+
+~~~
+import cv2
+import numpy as np
+
+# Cargar la máscara que deseas agregar (asegúrate de que sea PNG con transparencia)
+mascara = cv2.imread('gas.png', cv2.IMREAD_UNCHANGED)  # Cargar PNG con transparencia
+
+# Cargar el clasificador preentrenado de rostros
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt2.xml')
+
+# Capturar video desde la cámara (o puedes usar un archivo de video)
+video = cv2.VideoCapture(0)  # Cambia el 0 por la ruta de un archivo de video si quieres usar un archivo
+
+while True:
+    # Leer cada frame del video
+    ret, frame = video.read()
+
+    if not ret:
+        break
+
+    # Convertir el frame a escala de grises
+    frame_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Detectar los rostros en el frame
+    rostros = face_cascade.detectMultiScale(frame_gris, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+    # Procesar cada rostro detectado
+    for (x, y, w, h) in rostros:
+        movimientoX = 40
+        movimientoY = 50 
+        
+        # Redimensionar la máscara para que coincida con el tamaño del rostro detectado
+        mascara_redimensionada = cv2.resize(mascara, (w + movimientoX, h + movimientoY))
+
+        # Separar los canales de la máscara: color y alfa (transparencia)
+        mascara_rgb = mascara_redimensionada[:, :, :3]  # Canal de color
+        mascara_alpha = mascara_redimensionada[:, :, 3]  # Canal de transparencia
+        
+        # Convertir mascara_alpha a tipo uint8 si no lo es
+        if mascara_alpha.dtype != np.uint8:
+            mascara_alpha = mascara_alpha.astype(np.uint8)
+            
+        #Para acomodar mascara de gas
+        traslacion_x = 10
+        traslacion_y = 25
+
+        # Crear una región de interés (ROI) en el frame donde colocaremos la máscara
+        roi = frame[y - traslacion_y:y - traslacion_y + h + movimientoY, x:x + w + movimientoX]
+
+        # Verificar que el ROI coincide con el tamaño de la máscara para evitar errores
+        if roi.shape[:2] == mascara_rgb.shape[:2]:
+            # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
+            mascara_alpha_inv = cv2.bitwise_not(mascara_alpha)
+
+            # Enmascarar la región del rostro en la imagen original
+            fondo = cv2.bitwise_and(roi, roi, mask=mascara_alpha_inv)
+
+            # Enmascarar la máscara RGB
+            mascara_fg = cv2.bitwise_and(mascara_rgb, mascara_rgb, mask=mascara_alpha)
+
+            # Combinar el fondo (parte del rostro sin máscara) y la parte con la máscara
+            resultado = cv2.add(fondo, mascara_fg)
+
+            # Reemplazar la región del rostro con la imagen combinada
+            frame[y - traslacion_y:y - traslacion_y + h + movimientoY, x:x + w + movimientoX] = resultado
+
+    # Mostrar el frame con la máscara aplicada
+    cv2.imshow('Video con mascara', frame)
+
+    # Presionar 'q' para salir del loop
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Liberar la captura de video y cerrar las ventanas
+video.release()
+cv2.destroyAllWindows()
+
+~~~
+
+### Actividad procesamiento de color HSV en imagen
+Para la actividad se usaron diferentes rango bajos y altos para los colores que se querian probar y se puso en un cv2.inRange() para hacer la mascara de cada color. Despues se uso un cv2.where() para aplicar la mascara y solo obtener los tonos del color deseado en la imagen.
+
+~~~
+import cv2
+import numpy as np
+
+imagen = cv2.imread('teoriaColor.jpg', 1)
+
+imagen_hsv = cv2.cvtColor(imagen, cv2.COLOR_BGR2HSV)
+
+imagen_gris = cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
+
+imagen_gris_bgr = cv2.cvtColor(imagen_gris, cv2.COLOR_GRAY2BGR)
+
+#Imagen color verde
+bajo_verde = np.array([40, 40, 40])
+alto_verde = np.array([80, 255, 255])
+
+mascara_verde = cv2.inRange(imagen_hsv, bajo_verde, alto_verde)
+
+resultadoVerde = np.where(mascara_verde[:, :, None] == 255, imagen, imagen_gris_bgr)
+
+#Imagen color Azul
+bajo_azul = np.array([85, 40, 40])
+alto_azul = np.array([128, 255, 255])
+
+mascara_azul = cv2.inRange(imagen_hsv, bajo_azul, alto_azul)
+
+resultadoAzul = np.where(mascara_azul[:, :, None] == 255, imagen, imagen_gris_bgr)
+
+#Imagen color Amarillo
+bajo_amarillo = np.array([22, 40, 40])
+alto_amarillo = np.array([32, 255, 255])
+
+mascara_amarillo = cv2.inRange(imagen_hsv, bajo_amarillo, alto_amarillo)
+
+resultadoAmarillo = np.where(mascara_amarillo[:, :, None] == 255, imagen, imagen_gris_bgr)
+
+#Imagen color Morado
+bajo_morado = np.array([130, 40, 40])
+alto_morado = np.array([145, 255, 255])
+
+mascara_morado = cv2.inRange(imagen_hsv, bajo_morado, alto_morado)
+
+resultadoMorado = np.where(mascara_morado[:, :, None] == 255, imagen, imagen_gris_bgr)
+
+
+#Imagen color Rosado
+bajo_rosa = np.array([146, 40, 40])
+alto_rosa = np.array([162, 255, 255])
+
+mascara_rosa = cv2.inRange(imagen_hsv, bajo_rosa, alto_rosa)
+
+resultadoRosa = np.where(mascara_rosa[:, :, None] == 255, imagen, imagen_gris_bgr)
+
+cv2.imshow('Color verde resaltado', resultadoVerde)
+cv2.imshow('Color azul resaltado', resultadoAzul)
+cv2.imshow('Color amarillo resaltado', resultadoAmarillo)
+cv2.imshow('Color morado resaltado', resultadoMorado)
+cv2.imshow('Color rosado resaltado', resultadoRosa)
+cv2.imshow('Original', imagen)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+~~~
+
+Para el video de igual forma se usa una mascara con rango de alto y bajo, en este caso para el color azul. En este caso la imagen es lo que se obtiene del video con cap.read() y se le aplica la mascara con un cv2.where() para obtener solo el color de la mascara azul.
+
+~~~
+import cv2
+import numpy as np
+
+cap = cv2.VideoCapture(0)
+
+while(True):
+    ret, img = cap.read()
+    if ret:
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        #Imagen color Azul
+        bajo_azul = np.array([85, 40, 40])
+        alto_azul = np.array([129, 255, 255])
+        imagen_gris = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        imagen_gris_bgr = cv2.cvtColor(imagen_gris, cv2.COLOR_GRAY2BGR)
+        
+        
+        maskColor = cv2.inRange(hsv, bajo_azul, alto_azul)
+        img_azul = cv2.bitwise_and(img, img, mask=maskColor)
+        resultadoAzul = np.where(maskColor[:, :, None] == 255, img_azul, imagen_gris_bgr)
+        cv2.imshow('video', resultadoAzul)
+        
+        k =cv2.waitKey(1) & 0xFF
+        if k == 27 :
+            break
+    else:
+        break
 ~~~
