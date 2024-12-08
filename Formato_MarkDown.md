@@ -984,9 +984,12 @@ for i in range(filas):
 ~~~
 
 Dando como resultado una imagen un poco menos definida que la original
-![Original]()
+Original:
+![Original](https://github.com/DavidMB4/Graficacion/blob/master/ActFiltroConvolucional/girasol.jpg?raw=true)
 
-![Filtro]()
+
+Filtro:
+![Filtro](https://github.com/DavidMB4/Graficacion/blob/master/ActFiltroConvolucional/filtro%20.jpg?raw=true)
 
 __Codigo completo:__
 ~~~
