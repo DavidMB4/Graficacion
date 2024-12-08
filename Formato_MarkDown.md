@@ -554,3 +554,816 @@ while(True):
     else:
         break
 ~~~
+
+### Actividad usar 5 mascaras con flujo optico
+Para esta actividad replique 5 veces lo de la mascara de gas, y fui probando diferentes coordenadas y valores para poder acomodar lo mas posible cada imagen al rostro. Por ejemplo:
+~~~
+lentes_redimension = cv2.resize(mascara_lentes, (100, 60))
+        nariz_redimension = cv2.resize(mascara_nariz, (100, 100))
+        cuernos_redimension = cv2.resize(mascara_cuernos, (100, 100 ))
+        sombrero_redimension = cv2.resize(mascara_sombrero, (w + 20, h + 10))
+        bigote_redimension = cv2.resize(mascara_bigote, (100, 100))
+~~~
+
+cada imagen cuenta con un roi, que despues se asocia a un resultado, por ejemplo:
+~~~
+ # Crear una región de interés (ROI) en el frame donde colocaremos la máscara
+        roi = frame[y:y + h + movimientoY, x:x + w + movimientoX]
+        roi_lentes = frame[y + 30:y + 30 + 60, x + 20:x + 100 + 20]
+        roi_nariz = frame[y + 45:y + 100 + 45, x + 20:x + 100 + 20]
+        roi_cuernos = frame[y - 250:y + 100 - 250 , x + 20:x + 120]
+        roi_sombrero = frame[y - 155:y + 10 + h - 155, x - 20:x + w + 20 - 20]
+        roi_bigote = frame[y + 55:y + 100 + 55, x + 20:x + 100 + 20]
+
+        if roi_lentes.shape[:2] == lentes_rgb.shape[:2]:
+            # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
+            lentes_alpha_inv = cv2.bitwise_not(lentes_alpha)
+
+            # Enmascarar la región del rostro en la imagen original
+            fondo = cv2.bitwise_and(roi_lentes, roi_lentes, mask=lentes_alpha_inv)
+
+            # Enmascarar la máscara RGB
+            lentes_fg = cv2.bitwise_and(lentes_rgb, lentes_rgb, mask=lentes_alpha)
+
+            # Combinar el fondo (parte del rostro sin máscara) y la parte con la máscara
+            resultado = cv2.add(fondo, lentes_fg)
+
+            # Reemplazar la región del rostro con la imagen combinada
+            frame[y + 30:y + 30 + 60, x + 20:x + 100+ 20] = resultado
+~~~
+
+Asi sucesivamente con cada una de las 5 las va a ir juntando con add con el fondo que seria la ventana, mostrando asi 5 mascaras.
+condigo completo:
+~~~
+import cv2
+import numpy as np
+
+# Cargar la máscara que deseas agregar (asegúrate de que sea PNG con transparencia)
+mascara_lentes = cv2.imread('lentes.png', cv2.IMREAD_UNCHANGED)  # Cargar PNG con transparencia
+mascara_nariz = cv2.imread('nariz.png', cv2.IMREAD_UNCHANGED)
+mascara_cuernos = cv2.imread('cuernos.png', cv2.IMREAD_UNCHANGED)
+mascara_sombrero = cv2.imread('sombrero.png', cv2.IMREAD_UNCHANGED)
+mascara_bigote = cv2.imread('bigote.png', cv2.IMREAD_UNCHANGED)
+
+# Cargar el clasificador preentrenado de rostros
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt2.xml')
+
+# Capturar video desde la cámara (o puedes usar un archivo de video)
+video = cv2.VideoCapture(0)  # Cambia el 0 por la ruta de un archivo de video si quieres usar un archivo
+
+while True:
+    # Leer cada frame del video
+    ret, frame = video.read()
+
+    if not ret:
+        break
+
+    # Convertir el frame a escala de grises
+    frame_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Detectar los rostros en el frame
+    rostros = face_cascade.detectMultiScale(frame_gris, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+    # Procesar cada rostro detectado
+    for (x, y, w, h) in rostros:
+        movimientoX = 40
+        movimientoY = 50 
+        
+        # Redimensionar la máscara para que coincida con el tamaño del rostro detectado
+        lentes_redimension = cv2.resize(mascara_lentes, (100, 60))
+        nariz_redimension = cv2.resize(mascara_nariz, (100, 100))
+        cuernos_redimension = cv2.resize(mascara_cuernos, (100, 100 ))
+        sombrero_redimension = cv2.resize(mascara_sombrero, (w + 20, h + 10))
+        bigote_redimension = cv2.resize(mascara_bigote, (100, 100))
+        
+        lentes_rgb = lentes_redimension[:, :, :3] 
+        lentes_alpha = lentes_redimension[:, :, 3] 
+        
+        nariz_rgb = nariz_redimension[:, :, :3] 
+        nariz_alpha = nariz_redimension[:, :, 3] 
+        
+        cuernos_rgb = cuernos_redimension[:, :, :3] 
+        cuernos_alpha = cuernos_redimension[:, :, 3] 
+        
+        sombrero_rgb = sombrero_redimension[:, :, :3] 
+        sombrero_alpha = sombrero_redimension[:, :, 3] 
+        
+        bigote_rgb = bigote_redimension[:, :, :3] 
+        bigote_alpha = bigote_redimension[:, :, 3] 
+        
+            
+        if lentes_alpha.dtype != np.uint8:
+            lentes_alpha = lentes_alpha.astype(np.uint8)
+            
+        if nariz_alpha.dtype != np.uint8:
+            nariz_alpha = nariz_alpha.astype(np.uint8)
+            
+        if cuernos_alpha.dtype != np.uint8:
+            cuernos_alpha = cuernos_alpha.astype(np.uint8)
+            
+        if sombrero_alpha.dtype != np.uint8:
+            sombrero_alpha = sombrero_alpha.astype(np.uint8)
+            
+        if bigote_alpha.dtype != np.uint8:
+            bigote_alpha = bigote_alpha.astype(np.uint8)
+
+        traslacion_x = 20
+        traslacion_y = 165
+
+        # Crear una región de interés (ROI) en el frame donde colocaremos la máscara
+        roi = frame[y:y + h + movimientoY, x:x + w + movimientoX]
+        roi_lentes = frame[y + 30:y + 30 + 60, x + 20:x + 100 + 20]
+        roi_nariz = frame[y + 45:y + 100 + 45, x + 20:x + 100 + 20]
+        roi_cuernos = frame[y - 250:y + 100 - 250 , x + 20:x + 120]
+        roi_sombrero = frame[y - 155:y + 10 + h - 155, x - 20:x + w + 20 - 20]
+        roi_bigote = frame[y + 55:y + 100 + 55, x + 20:x + 100 + 20]
+            
+            
+        if roi_lentes.shape[:2] == lentes_rgb.shape[:2]:
+            # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
+            lentes_alpha_inv = cv2.bitwise_not(lentes_alpha)
+
+            # Enmascarar la región del rostro en la imagen original
+            fondo = cv2.bitwise_and(roi_lentes, roi_lentes, mask=lentes_alpha_inv)
+
+            # Enmascarar la máscara RGB
+            lentes_fg = cv2.bitwise_and(lentes_rgb, lentes_rgb, mask=lentes_alpha)
+
+            # Combinar el fondo (parte del rostro sin máscara) y la parte con la máscara
+            resultado = cv2.add(fondo, lentes_fg)
+
+            # Reemplazar la región del rostro con la imagen combinada
+            frame[y + 30:y + 30 + 60, x + 20:x + 100+ 20] = resultado
+            
+        if roi_nariz.shape[:2] == nariz_rgb.shape[:2]:
+            # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
+            nariz_alpha_inv = cv2.bitwise_not(nariz_alpha)
+
+            # Enmascarar la región del rostro en la imagen original
+            fondo = cv2.bitwise_and(roi_nariz, roi_nariz, mask=nariz_alpha_inv)
+
+            # Enmascarar la máscara RGB
+            nariz_fg = cv2.bitwise_and(nariz_rgb, nariz_rgb, mask=nariz_alpha)
+
+            # Combinar el fondo (parte del rostro sin máscara) y la parte con la máscara
+            resultado = cv2.add(fondo, nariz_fg)
+
+            # Reemplazar la región del rostro con la imagen combinada
+            frame[y + 30:y + 100 + 30, x + 20:x + 100 + 20] = resultado
+            
+        if roi_cuernos.shape[:2] == cuernos_rgb.shape[:2]:
+            # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
+            cuernos_alpha_inv = cv2.bitwise_not(cuernos_alpha)
+
+            # Enmascarar la región del rostro en la imagen original
+            fondo = cv2.bitwise_and(roi_cuernos, roi_cuernos, mask=cuernos_alpha_inv)
+
+            # Enmascarar la máscara RGB
+            cuernos_fg = cv2.bitwise_and(cuernos_rgb, cuernos_rgb, mask=cuernos_alpha)
+
+            # Combinar el fondo (parte del rostro sin máscara) y la parte con la máscara
+            resultado = cv2.add(fondo, cuernos_fg)
+
+            # Reemplazar la región del rostro con la imagen combinada
+            frame[y - 250:y + 100 - 250 , x + 20:x + 120] = resultado
+            
+        if roi_sombrero.shape[:2] == sombrero_rgb.shape[:2]:
+            # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
+            sombrero_alpha_inv = cv2.bitwise_not(sombrero_alpha)
+
+            # Enmascarar la región del rostro en la imagen original
+            fondo = cv2.bitwise_and(roi_sombrero, roi_sombrero, mask=sombrero_alpha_inv)
+
+            # Enmascarar la máscara RGB
+            sombrero_fg = cv2.bitwise_and(sombrero_rgb, sombrero_rgb, mask=sombrero_alpha)
+
+            # Combinar el fondo (parte del rostro sin máscara) y la parte con la máscara
+            resultado = cv2.add(fondo, sombrero_fg)
+
+            # Reemplazar la región del rostro con la imagen combinada
+            frame[y - 155:y + 10 + h - 155, x - 20:x + w + 20 - 20] = resultado
+            
+        if roi_bigote.shape[:2] == bigote_rgb.shape[:2]:
+            # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
+            bigote_alpha_inv = cv2.bitwise_not(bigote_alpha)
+
+            # Enmascarar la región del rostro en la imagen original
+            fondo = cv2.bitwise_and(roi_bigote, roi_bigote, mask=bigote_alpha_inv)
+
+            # Enmascarar la máscara RGB
+            bigote_fg = cv2.bitwise_and(bigote_rgb, bigote_rgb, mask=bigote_alpha)
+
+            # Combinar el fondo (parte del rostro sin máscara) y la parte con la máscara
+            resultado = cv2.add(fondo, bigote_fg)
+
+            # Reemplazar la región del rostro con la imagen combinada
+            frame[y + 55:y + 100 + 55, x + 20:x + 100 + 20] = resultado
+
+    # Mostrar el frame con la máscara aplicada
+    cv2.imshow('Video con mascara', frame)
+
+    # Presionar 'q' para salir del loop
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Liberar la captura de video y cerrar las ventanas
+video.release()
+cv2.destroyAllWindows()
+
+~~~
+
+### Acitivdad Sistema solar
+
+Para la actividad del sistema solar cada planeta tenia diferentes ejes, para simular la distancia de cada uno de los planetas (incluso el aro de saturno).
+~~~
+mercurio_ejeMayor = 200 
+mercurio_ejeMenor = 150 
+
+venus_ejeMayor = 230
+venus_ejeMenor = 180
+
+tierra_ejeMayor = 250
+tierra_ejeMenor = 200
+
+marte_ejeMayor = 270
+marte_ejeMenor = 220
+
+jupiter_ejeMayor = 310
+jupiter_ejeMenor = 260
+
+saturno_ejeMayor = 350
+saturno_ejeMenor = 300
+saturnoAro_ejeMayor = 355
+saturnoAro_ejeMenor = 305
+
+urano_ejeMayor = 380
+urano_ejeMenor = 330
+
+neptuno_ejeMayor = 400
+neptuno_ejeMenor = 350
+~~~
+
+Tambien tenia cada uno un valor de movimiento diferente para simular el tiempo que tardan en girar alrededor del sol.
+~~~
+    t_mercurio = t * 1.6 
+    t_venus = t * 1.4  
+    t_tierra = t * 1.25  
+    t_marte = t * 1.18  
+    t_jupiter = t * 1 
+    t_saturno = t * 0.9  
+    t_saturnoAro = t * 0.9
+    t_urano = t * 0.7  
+    t_neptuno = t * 0.5 
+~~~
+
+Y cada planeta tiene diferente radio para simular su tamaño.
+~~~
+pt_tray_mercurio = generar_punto_elipse(mercurio_ejeMayor, mercurio_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_mercurio, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_Venus = generar_punto_elipse(venus_ejeMayor, venus_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_Venus, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_tierra = generar_punto_elipse(tierra_ejeMayor, tierra_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_tierra, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_marte = generar_punto_elipse(marte_ejeMayor, marte_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_marte, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_jupiter = generar_punto_elipse(jupiter_ejeMayor, jupiter_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_jupiter, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_saturno = generar_punto_elipse(saturno_ejeMayor, saturno_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_saturno, radius=1, color=(255, 255, 255), thickness=-1)
+        pt_tray_saturnoAro = generar_punto_elipse(saturnoAro_ejeMayor, saturnoAro_ejeMenor, t_tray)
+        
+        pt_tray_urano = generar_punto_elipse(urano_ejeMayor, urano_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_urano, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_neptuno = generar_punto_elipse(neptuno_ejeMayor, neptuno_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_neptuno, radius=1, color=(255, 255, 255), thickness=-1)
+    
+~~~
+
+__codig completo:__
+~~~
+import numpy as np
+import cv2
+
+def generar_punto_elipse(a, b, t):
+    x = int(a * np.cos(t) + 500)  
+    y = int(b * np.sin(t) + 500)
+    return (x, y)
+
+img_width, img_height = 1000, 1000
+
+num_puntos = 1000
+
+mercurio_ejeMayor = 200 
+mercurio_ejeMenor = 150 
+
+venus_ejeMayor = 230
+venus_ejeMenor = 180
+
+tierra_ejeMayor = 250
+tierra_ejeMenor = 200
+
+marte_ejeMayor = 270
+marte_ejeMenor = 220
+
+jupiter_ejeMayor = 310
+jupiter_ejeMenor = 260
+
+saturno_ejeMayor = 350
+saturno_ejeMenor = 300
+saturnoAro_ejeMayor = 355
+saturnoAro_ejeMenor = 305
+
+urano_ejeMayor = 380
+urano_ejeMenor = 330
+
+neptuno_ejeMayor = 400
+neptuno_ejeMenor = 350
+
+t_vals = np.linspace(0, 2 * np.pi, num_puntos)
+
+for t in t_vals:
+
+    imagen = np.zeros((img_height, img_width, 3), dtype=np.uint8)
+    
+    t_mercurio = t * 1.6 
+    t_venus = t * 1.4  
+    t_tierra = t * 1.25  
+    t_marte = t * 1.18  
+    t_jupiter = t * 1 
+    t_saturno = t * 0.9  
+    t_saturnoAro = t * 0.9
+    t_urano = t * 0.7  
+    t_neptuno = t * 0.5 
+
+    mercurioPunto = generar_punto_elipse(mercurio_ejeMayor, mercurio_ejeMenor, t_mercurio)
+    veunsPunto = generar_punto_elipse(venus_ejeMayor, venus_ejeMenor, t_venus)
+    tierraPunto = generar_punto_elipse(tierra_ejeMayor, tierra_ejeMenor, t_tierra)
+    martePunto = generar_punto_elipse(marte_ejeMayor, marte_ejeMenor, t_marte)
+    jupiterPunto = generar_punto_elipse(jupiter_ejeMayor, jupiter_ejeMenor, t_jupiter)
+    saturnoPunto = generar_punto_elipse(saturno_ejeMayor, saturno_ejeMenor, t_saturno)
+    saturnoAro = generar_punto_elipse(saturno_ejeMayor, saturno_ejeMenor, t_saturnoAro)
+    uranoPunto = generar_punto_elipse(urano_ejeMayor, urano_ejeMenor, t_urano)
+    neptunoPunto = generar_punto_elipse(neptuno_ejeMayor, neptuno_ejeMenor, t_neptuno)
+    
+
+    cv2.circle(imagen, mercurioPunto, radius=5, color=(126, 200, 243), thickness=-1)
+    cv2.circle(imagen, veunsPunto, radius=8, color=(0, 100, 158), thickness=-1)
+    cv2.circle(imagen, tierraPunto, radius=8, color=(76, 201, 166), thickness=-1)
+    cv2.circle(imagen, martePunto, radius=7, color=(5, 80, 210), thickness=-1)
+    cv2.circle(imagen, jupiterPunto, radius=11, color=(145, 218, 251), thickness=-1)
+    cv2.circle(imagen, saturnoPunto, radius=11, color=(141, 188, 209), thickness=-1)
+    cv2.circle(imagen, saturnoAro, radius=15, color=(89, 223, 255), thickness=1)
+    cv2.circle(imagen, uranoPunto, radius=8, color=(243, 242, 169), thickness=-1)
+    cv2.circle(imagen, neptunoPunto, radius=7, color=(221, 111, 60), thickness=-1)
+    
+    cv2.circle(imagen, (500, 500), 50, (0,206,255), -1)
+    
+
+    for t_tray in t_vals:
+        pt_tray_mercurio = generar_punto_elipse(mercurio_ejeMayor, mercurio_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_mercurio, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_Venus = generar_punto_elipse(venus_ejeMayor, venus_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_Venus, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_tierra = generar_punto_elipse(tierra_ejeMayor, tierra_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_tierra, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_marte = generar_punto_elipse(marte_ejeMayor, marte_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_marte, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_jupiter = generar_punto_elipse(jupiter_ejeMayor, jupiter_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_jupiter, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_saturno = generar_punto_elipse(saturno_ejeMayor, saturno_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_saturno, radius=1, color=(255, 255, 255), thickness=-1)
+        pt_tray_saturnoAro = generar_punto_elipse(saturnoAro_ejeMayor, saturnoAro_ejeMenor, t_tray)
+        
+        pt_tray_urano = generar_punto_elipse(urano_ejeMayor, urano_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_urano, radius=1, color=(255, 255, 255), thickness=-1)
+        
+        pt_tray_neptuno = generar_punto_elipse(neptuno_ejeMayor, neptuno_ejeMenor, t_tray)
+        cv2.circle(imagen, pt_tray_neptuno, radius=1, color=(255, 255, 255), thickness=-1)
+    
+
+    cv2.imshow('img', imagen)
+    
+
+    cv2.waitKey(10)
+    
+cv2.destroyAllWindows()
+~~~
+
+### Filtro convolucional 1/9
+Primero se creo una copia de la matriz original pero con bordes con 0.
+~~~
+matriz_con_borde = np.zeros((filas + 2, columnas + 2))
+resultado = np.zeros((filas, columnas), dtype=np.uint8)
+
+for i in range(filas):
+    for j in range(columnas):
+        matriz_con_borde[i + 1][j + 1] = imagen_gris[i][j]
+~~~
+
+Se aplica el filtro en ciclo for, pero usando los valores de la matriz con 0 para poder hacer la suma con los valores que estarian fuera de la matriz original, y el resultado de las sumas se guarda en la matriz original.
+~~~
+
+
+#Filtro 1/9 para la matriz
+for i in range(filas):
+    for j in range(columnas):
+        resultado[i][j] = matriz_con_borde[x+i-1,y+j-1]*(1/9)+matriz_con_borde[x+i,y+j-1]*(1/9)+matriz_con_borde[x+i+1,y+j-1]*(1/9)+matriz_con_borde[x+i-1,y+j]*(1/9)+matriz_con_borde[x+i,y+j]*(1/9)+matriz_con_borde[x+i+1,y+j]*(1/9)+matriz_con_borde[x+i-1,y+j+1]*(1/9)+matriz_con_borde[x+i,y+j+1]*(1/9)+matriz_con_borde[x+i+1,y+j+1]*(1/9)
+        
+
+~~~
+
+Dando como resultado una imagen un poco menos definida que la original
+![Original]()
+
+![Filtro]()
+
+__Codigo completo:__
+~~~
+import numpy as np
+import cv2
+
+imagen = cv2.imread('girasol.jpg',1)
+
+imagen_gris = cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
+filas, columnas = len(imagen_gris), len(imagen_gris[0])
+
+#Guia para la posición
+y=1
+x=1
+
+matriz_con_borde = np.zeros((filas + 2, columnas + 2))
+
+resultado = np.zeros((filas, columnas), dtype=np.uint8)
+
+for i in range(filas):
+    for j in range(columnas):
+        matriz_con_borde[i + 1][j + 1] = imagen_gris[i][j]
+
+#Filtro 1/9 para la matriz
+for i in range(filas):
+    for j in range(columnas):
+        resultado[i][j] = matriz_con_borde[x+i-1,y+j-1]*(1/9)+matriz_con_borde[x+i,y+j-1]*(1/9)+matriz_con_borde[x+i+1,y+j-1]*(1/9)+matriz_con_borde[x+i-1,y+j]*(1/9)+matriz_con_borde[x+i,y+j]*(1/9)+matriz_con_borde[x+i+1,y+j]*(1/9)+matriz_con_borde[x+i-1,y+j+1]*(1/9)+matriz_con_borde[x+i,y+j+1]*(1/9)+matriz_con_borde[x+i+1,y+j+1]*(1/9)
+        
+cv2.imshow("Imagen con filtro", resultado)
+cv2.imshow("Imagen original", imagen_gris)
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+~~~
+
+### Actividad pelota ping pong
+Para que la esfera pueda moverse se le asigna velocidad y una posicion de inicio. La ventana se le asigna un acho y alto.
+~~~
+ancho, alto = 500, 500
+imagen = 255 * np.ones((alto, ancho, 3), np.uint8)
+
+inicioX, inicioY = 200, 200
+velX, velY = 5, 7
+~~~
+
+Cada vez que la pelota llegue a una posicion mayor o igual al del borde su velocidad en X o en Y sera negativa para que vaya ahora al aldo contrario.
+~~~
+    inicioX = inicioX + velX
+    inicioY = inicioY + velY
+    
+    if inicioX - 20 <= 0 or inicioX + 20 >= ancho:
+        velX = -velX
+    if inicioY - 20 <= 0 or inicioY + 20 >= alto:
+        velY = -velY
+~~~
+
+
+## Proyecto 1: Rotacion, Escalamiento, y Traslacion con flujo optico
+Para el proyecto 1 use una imagen png y los codigos que habiamos visto en clase de la malla y de la mascara de gas.
+El codigo tiene el contador de lo que sera el valor de la traslacion, escalamiento y rotacion, y los limites de cada uno:
+~~~
+limTrasPos = 100  # Máximo de traslación a la derecha
+limTrasNeg = -100  # Puedes usar este para traslación negativa si es necesario
+conTras = 0  # Contador de la traslación
+
+limEscMax = 3.0  # Máximo factor de escalamiento
+limEscMin = 0.6  # Mínimo factor de escalamiento
+conEsc = 1  # Factor de escalamiento inicial
+
+limRotHoraria = 360
+limRotAntiHorario = -360
+conRot = 0
+~~~
+
+Use el cv.flip para que se reflejara la imagen que obtiene el frame y poder manejar mejor el flujo optico
+~~~
+frame = cv.flip(frame, 1)
+~~~
+
+Calcula el tamaño para el escalamiento, teniendo un tamaño original de 100 el cual puede ir aumentando con conEsc y lo convierte en entero para poder usarse en cv.resize
+~~~
+tamano = int(100 * conEsc)  
+
+    # Redimensiona la imagen PNG según el tamaño
+    resized_png = cv.resize(png_image, (tamano, tamano))
+~~~
+
+Otiene la matriz de rotacion apartir de obtener la X y Y de la imagen, lo cual sirve para obtener el centro de rotacion de la imagen y usar cv.getRotationMatrix2D para crear una matriz de rotacion, donde usaremos conRot que servira como el angulo, siendo un angulo positivo lo que hara que gire en sentido antihorario y un negativo que lo haga en sentido horario. Despues se usa un warpAffine para aplicar la rotacion a la imagen con la matriz creada. 
+~~~
+    x, y = resized_png.shape[:2]
+    centro_imagen = (y // 2, x // 2)
+    Matriz_rotacion = cv.getRotationMatrix2D(centro_imagen, conRot, 1.0)
+    
+    imagen_rotada = cv.warpAffine(resized_png, Matriz_rotacion, (y,x))
+~~~
+
+Tambien se usan los canales RGB y alpha de la imagen ya que es un png y se tienen que usar tambien.
+~~~
+    mascara_rgb = imagen_rotada[:, :, :3]
+    mascara_alpha = imagen_rotada[:, :, 3]
+~~~
+
+Se usa un roi que servira la region donde se pondra la imagen y de esta forma podemos mover la imagen con el conTras.
+~~~
+# Determinar la posición central
+    x_centro = (ancho - tamano) // 2
+    y_centro = (alto - tamano) // 2
+
+    # Crear una región de interés (ROI) en el centro del frame
+    roi = frame[y_centro:y_centro + tamano, x_centro + conTras:x_centro + conTras + tamano]
+~~~
+Ya que de esta forma no solo ponemos la imagen en el centro del frame si no tambien la vamos moviendo con los valores de la traslacion.
+
+Se combinan los valores de las mascaras de la imagen (RGB, alpha) y se juntando con el fondo que seria el frame de esta forma se combina la imagen la imagen del frame.
+~~~
+# Combinar la máscara con el ROI del frame
+    mascara_alpha_inv = cv.bitwise_not(mascara_alpha)
+    fondo = cv.bitwise_and(roi, roi, mask=mascara_alpha_inv)
+    mascara_fg = cv.bitwise_and(mascara_rgb, mascara_rgb, mask=mascara_alpha)
+    resultado = cv.add(fondo, mascara_fg)
+
+    # Colocar la imagen combinada en el centro del frame
+    frame[y_centro:y_centro + tamano, x_centro + conTras:x_centro + conTras + tamano] = resultado
+~~~
+
+Despues hace el calculo que hace en la malla, donde hace un arreglo con las opsiciones de los puntos que va a hacer. Tambien se inicializan en 0 unas variables que serviran para hacer que se traslade, rote o escale la imagen, y reducir que lo haga por imprevistos como el cambio de luz o que pase algo detras de la imagen 
+~~~
+if p1 is None:
+        vgris = cv.cvtColor(vframe, cv.COLOR_BGR2GRAY)
+        p0 = np.array([(50, 400), (50, 420), (600, 400), (600, 420), (250, 100), (250, 120), (290, 110), (60, 410), (590, 410)])
+        p0 = np.float32(p0[:, np.newaxis, :])
+        mask = np.zeros_like(vframe)
+        cv.imshow('ventana', frame)
+    else:
+        bp1 = p1[st == 1]
+        bp0 = p0[st == 1]
+        
+        T0x, T0y, T1x, T1y, R4x, R4y, E2x, E2y, E3x, E3y, R5x, R5y, R6x, R6y, E8x, E8y, T7x, T7y = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+~~~
+
+Cada punto tiene 2 circulos y una linea que los une, el circle orignal tiene X y Y como c y d, y el circle nuevo que aparece en la posicion donde detecta el movimiento tiene X y Y como a y b, y la linea los une.
+~~~
+frame = cv.line(frame, (c, d), (a, b), (0, 0, 255), 2)
+            frame = cv.circle(frame, (c, d), 2, (255, 0, 0), -1)
+            frame = cv.circle(frame, (a, b), 3, (0, 255, 0), -1)
+
+            distancia = math.sqrt((c - a) ** 2 + (d - b) ** 2)
+            if i == 0: 
+                T0x = c - a
+                T0y = d - b
+                    
+            if i == 1:  
+                T1x = c -a
+                T1y = d -b
+                
+            if i == 7:
+                T7x = c - a
+                T7y = d - b
+                
+            if i == 8:
+                E8x = c - a
+                E8y = d - b
+                    
+            if i == 2:
+                E2x = c - a
+                E2y = d - b
+                            
+            if i == 3:
+                E3x = c -a
+                E3y = d - b
+                
+            if i == 4:
+                R4x = c - a
+                R4y = d - b
+                
+            if i == 5:
+                R5x = c - a
+                R5y = d - b
+            if i == 6:
+                R6x = c - a
+                R6y = d - b
+~~~
+En un primer inicia se calculaba la magnitud de la distancia entre el circcle original y el de la posicion nueva para validar si se traslada, rotaba o escalaba, pero no funionaba bien a la hora de evitar que algo externo afectara a la imagen, como la luz. 
+Al final use el manejo de las coordenadas de los circle, ya que esto ayuda a comprobar si esta moviendo a la derecha o izquierda en X, y abajo o arriba en Y. Se e resta el valor nuevo de la posicion al valor original, y se guarda en cada una de las varibales, siempre y cuando el punto que detecte movimiento sea el mismo que el valor de i dentro del arrelgo de las posiciones.
+
+Ahora por ejemplo para comprobar que es el usuario el que esta moviendo los puntos, el usuario tendria que mover la mano de tal forma que el valor absoluto de las variable que empiezan con T (traslacion) sean mayores a 10 en el caso de los valores de X y mayores a 5 en el caso de Y, esto quiere decir que se estan moviendo todos los puntos, ahora para reducir mas el que se mueva de forma accidental, se usan los valores nromales de T, por ejemplo sii T0x fuera mayor que 0 significa el cicle nuevo en x se movio a la izqiuera, por lo tanto x en el cicrcle original es mayor asi que, al restar c - a daria un resultado positivo, esto indica que el movimiento lo reconocio hacia la izquierda de las x. Ahora con T0y fuera menor que 0 significa que el circle nuevo se movio hacia abajo en y que en este caso significa que es un valor mayor de y que el valor original de circle. Por lo tanto al restar d - b daria un resultado negativo, lo que indica que se reconocio el moviento hacia abajo en Y. 
+
+~~~
+ if abs(T0x) > 10 and abs(T1x) > 10 and abs(T0y) > 5 and abs(T1y) > 5 and abs(T7x) > 10 and abs(T7y) > 5:
+            if T0x > 0 and T1x > 0 and T0y < 0 and T1y < 0 and T7x > 0 and T7y < 0:
+~~~
+Si esto es cierto entonces conTras disminuya su valor en 5. Esto significa que en los calculos del roi, en el siguiente ciclo la iamgen aparecera un poco hacia la izquierda. 
+~~~
+ if abs(T0x) > 10 and abs(T1x) > 10 and abs(T0y) > 5 and abs(T1y) > 5 and abs(T7x) > 10 and abs(T7y) > 5:
+            if T0x > 0 and T1x > 0 and T0y < 0 and T1y < 0 and T7x > 0 and T7y < 0:
+                if conTras > limTrasNeg: 
+                    conTras -= 5 # si los puntos van a la izquierda en diagonal hacia abajo se resta a la trasclacion
+                    print(conTras)
+~~~
+
+En otras palabras los puntos de la izquierda deben moverse hacia la izquierda y un poco hacia abajo (en diagonal hacia abajo) para que la imagen haga una traslacion poco a poco hacia la izquierda de las X.
+
+En el codigo se hace algo parecido para cada una de las actividades, el tema es mover la imagen en los puntos hacia la izquierda en diagonal hacia abajo o hacia la derecha en diagonal hacia abajo. 
+
+__codigo completo:__
+~~~
+import numpy as np
+import cv2 as cv
+import math
+
+cap = cv.VideoCapture(0)
+
+lkparm = dict(winSize=(15, 15), maxLevel=2,
+              criteria=(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.03))
+
+_, vframe = cap.read()
+vgris = cv.cvtColor(vframe, cv.COLOR_BGR2GRAY)
+p0 = np.array([(50, 400), (50, 420), (600, 400), (600, 420), (250, 100), (250, 120), (290, 110), (60, 410), (590, 410)])
+
+p0 = np.float32(p0[:, np.newaxis, :])
+
+mask = np.zeros_like(vframe)
+cad = ''
+
+limTrasPos = 100  # Máximo de traslación a la derecha
+limTrasNeg = -100  # Puedes usar este para traslación negativa si es necesario
+conTras = 0  # Contador de la traslación
+
+limEscMax = 3.0  # Máximo factor de escalamiento
+limEscMin = 0.6  # Mínimo factor de escalamiento
+conEsc = 1  # Factor de escalamiento inicial
+
+limRotHoraria = 360
+limRotAntiHorario = -360
+conRot = 0
+
+# Carga la imagen PNG con canal alfa
+png_image = cv.imread("flor.png", cv.IMREAD_UNCHANGED)
+
+
+while True:
+    _, frame = cap.read()
+    frame = cv.flip(frame, 1)
+    fgris = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    p1, st, err = cv.calcOpticalFlowPyrLK(vgris, fgris, p0, None, **lkparm)
+
+    # Dimensiones del marco
+    alto, ancho, _ = frame.shape
+    centro_x, centro_y = ancho // 2, alto // 2
+    tamano = int(100 * conEsc)  
+
+    # Redimensiona la imagen PNG según el tamaño
+    resized_png = cv.resize(png_image, (tamano, tamano))
+    
+    x, y = resized_png.shape[:2]
+    centro_imagen = (y // 2, x // 2)
+    Matriz_rotacion = cv.getRotationMatrix2D(centro_imagen, conRot, 1.0)
+    
+    imagen_rotada = cv.warpAffine(resized_png, Matriz_rotacion, (y,x))
+
+    # Separar los canales de la máscara
+    mascara_rgb = imagen_rotada[:, :, :3]
+    mascara_alpha = imagen_rotada[:, :, 3]
+    
+    # Determinar la posición central
+    x_centro = (ancho - tamano) // 2
+    y_centro = (alto - tamano) // 2
+
+    # Crear una región de interés (ROI) en el centro del frame
+    roi = frame[y_centro:y_centro + tamano, x_centro + conTras:x_centro + conTras + tamano]
+    
+    # Combinar la máscara con el ROI del frame
+    mascara_alpha_inv = cv.bitwise_not(mascara_alpha)
+    fondo = cv.bitwise_and(roi, roi, mask=mascara_alpha_inv)
+    mascara_fg = cv.bitwise_and(mascara_rgb, mascara_rgb, mask=mascara_alpha)
+    resultado = cv.add(fondo, mascara_fg)
+
+    # Colocar la imagen combinada en el centro del frame
+    frame[y_centro:y_centro + tamano, x_centro + conTras:x_centro + conTras + tamano] = resultado
+
+    if p1 is None:
+        vgris = cv.cvtColor(vframe, cv.COLOR_BGR2GRAY)
+        p0 = np.array([(50, 400), (50, 420), (600, 400), (600, 420), (250, 100), (250, 120), (290, 110), (60, 410), (590, 410)])
+        p0 = np.float32(p0[:, np.newaxis, :])
+        mask = np.zeros_like(vframe)
+        cv.imshow('ventana', frame)
+    else:
+        bp1 = p1[st == 1]
+        bp0 = p0[st == 1]
+        
+        T0x, T0y, T1x, T1y, R4x, R4y, E2x, E2y, E3x, E3y, R5x, R5y, R6x, R6y, E8x, E8y, T7x, T7y = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+        for i, (nv, vj) in enumerate(zip(bp1, bp0)):
+            a, b = (int(x) for x in nv.ravel())
+            c, d = (int(x) for x in vj.ravel())
+            
+
+            frame = cv.line(frame, (c, d), (a, b), (0, 0, 255), 2)
+            frame = cv.circle(frame, (c, d), 2, (255, 0, 0), -1)
+            frame = cv.circle(frame, (a, b), 3, (0, 255, 0), -1)
+
+            distancia = math.sqrt((c - a) ** 2 + (d - b) ** 2)
+            if i == 0: 
+                T0x = c - a
+                T0y = d - b
+                    
+            if i == 1:  
+                T1x = c -a
+                T1y = d -b
+                
+            if i == 7:
+                T7x = c - a
+                T7y = d - b
+                
+            if i == 8:
+                E8x = c - a
+                E8y = d - b
+                    
+            if i == 2:
+                E2x = c - a
+                E2y = d - b
+                            
+            if i == 3:
+                E3x = c -a
+                E3y = d - b
+                
+            if i == 4:
+                R4x = c - a
+                R4y = d - b
+                
+            if i == 5:
+                R5x = c - a
+                R5y = d - b
+            if i == 6:
+                R6x = c - a
+                R6y = d - b
+                
+        if abs(T0x) > 10 and abs(T1x) > 10 and abs(T0y) > 5 and abs(T1y) > 5 and abs(T7x) > 10 and abs(T7y) > 5:
+            if T0x > 0 and T1x > 0 and T0y < 0 and T1y < 0 and T7x > 0 and T7y < 0:
+                if conTras > limTrasNeg: 
+                    conTras -= 5 # si los puntos van a la izquierda en diagonal hacia abajo se resta a la trasclacion
+                    print(conTras)
+            elif T0x < 0 and T1x < 0 and T0y < 0 and T1y < 0 and T7x < 0 and T7y < 0:
+                if conTras < limTrasPos:
+                    conTras += 5 # si los puntos van a la derecha en diagonal hacia abajo se suma a la trasclacion
+                    print(conTras)
+                    
+        if abs(E2x) > 10 and abs(E3x) > 10 and abs(E2y) > 5 and abs(E3y) > 5 and abs(E8x) > 5 and abs(E8y) > 5: 
+            if E2x > 0 and E3x > 0 and E2y < 0 and E3y < 0 and E8x > 0 and E8y < 0:
+                if conEsc < limEscMax:
+                     conEsc += 0.2 # si los puntos van a la izquierda en diagonal hacia abajo se aumenta el escalamiento
+                     print(conEsc)
+            elif E2x < 0 and E2x < 0 and E2y < 0 and E3y < 0 and E8x < 0 and E8y < 0:
+                if limEscMin < conEsc:
+                    conEsc -= 0.2 # si los puntos van a la derecha en diagonal hacia abajo se reduce el escalamiento 
+                    print(conEsc)
+                    
+        if abs(R4x) > 10 and abs(R5x) > 10 and abs(R6x) > 10 and abs(R4y) > 5 and abs(R5y) > 5 and abs(R6y) > 5:
+            if R4x > 0 and R5x > 0 and R6x > 0 and R4y < 0 and R5y < 0 and R6y < 0:
+                if conRot < limRotHoraria:
+                    conRot += 5  # si los puntos van a la derecha en diagonal hacia abajo rota en sentido antihorario
+                    print("rotacion antihoraria")
+            elif R4x < 0 and R5x < 0 and R6x < 0 and R4y < 0 and R5y < 0 and R6y < 0:
+                if limRotAntiHorario < conRot:
+                    conRot -= 5 # si los puntos van a la izquierda en diagonal hacia abajo rota en sentido horario
+                    print("rotacion horaria")
+                
+                    
+
+
+        cv.imshow('ventana', frame)
+
+        vgris = fgris.copy()
+
+    if (cv.waitKey(1) & 0xff) == 27:  # Salir con 'Esc'
+        break
+
+cap.release()
+cv.destroyAllWindows()
+~~~

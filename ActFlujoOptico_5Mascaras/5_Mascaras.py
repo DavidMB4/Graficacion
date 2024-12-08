@@ -33,11 +33,11 @@ while True:
         movimientoY = 50 
         
         # Redimensionar la máscara para que coincida con el tamaño del rostro detectado
-        lentes_redimension = cv2.resize(mascara_lentes, (w + 70, h + 40))
-        nariz_redimension = cv2.resize(mascara_nariz, (w + 39, h + 50))
-        cuernos_redimension = cv2.resize(mascara_cuernos, (w + movimientoX, h + movimientoY))
-        sombrero_redimension = cv2.resize(mascara_sombrero, (w + 40, h + 30))
-        bigote_redimension = cv2.resize(mascara_bigote, (w + 31, h + 45))
+        lentes_redimension = cv2.resize(mascara_lentes, (100, 60))
+        nariz_redimension = cv2.resize(mascara_nariz, (100, 100))
+        cuernos_redimension = cv2.resize(mascara_cuernos, (100, 100 ))
+        sombrero_redimension = cv2.resize(mascara_sombrero, (w + 20, h + 10))
+        bigote_redimension = cv2.resize(mascara_bigote, (100, 100))
         
         lentes_rgb = lentes_redimension[:, :, :3] 
         lentes_alpha = lentes_redimension[:, :, 3] 
@@ -75,11 +75,11 @@ while True:
 
         # Crear una región de interés (ROI) en el frame donde colocaremos la máscara
         roi = frame[y:y + h + movimientoY, x:x + w + movimientoX]
-        roi_lentes = frame[y:y + h + 40, x:x + w + 70]
-        roi_nariz = frame[y:y + h + 50, x:x + w + 39]
-        roi_cuernos = frame[y:y + h + movimientoY, x:x + w + movimientoX]
-        roi_sombrero = frame[y - 165:y + 30 + h - 165, x - 20:x + w + 40 - 20]
-        roi_bigote = frame[y:y + h + 45, x:x + w + 31]
+        roi_lentes = frame[y + 30:y + 30 + 60, x + 20:x + 100 + 20]
+        roi_nariz = frame[y + 45:y + 100 + 45, x + 20:x + 100 + 20]
+        roi_cuernos = frame[y - 250:y + 100 - 250 , x + 20:x + 120]
+        roi_sombrero = frame[y - 155:y + 10 + h - 155, x - 20:x + w + 20 - 20]
+        roi_bigote = frame[y + 55:y + 100 + 55, x + 20:x + 100 + 20]
             
             
         if roi_lentes.shape[:2] == lentes_rgb.shape[:2]:
@@ -96,7 +96,7 @@ while True:
             resultado = cv2.add(fondo, lentes_fg)
 
             # Reemplazar la región del rostro con la imagen combinada
-            frame[y:y + h + 40, x:x + w + 70] = resultado
+            frame[y + 30:y + 30 + 60, x + 20:x + 100+ 20] = resultado
             
         if roi_nariz.shape[:2] == nariz_rgb.shape[:2]:
             # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
@@ -112,7 +112,7 @@ while True:
             resultado = cv2.add(fondo, nariz_fg)
 
             # Reemplazar la región del rostro con la imagen combinada
-            frame[y:y + h + 50, x:x + w + 39] = resultado
+            frame[y + 30:y + 100 + 30, x + 20:x + 100 + 20] = resultado
             
         if roi_cuernos.shape[:2] == cuernos_rgb.shape[:2]:
             # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
@@ -128,7 +128,7 @@ while True:
             resultado = cv2.add(fondo, cuernos_fg)
 
             # Reemplazar la región del rostro con la imagen combinada
-            frame[y:y + h + movimientoY, x:x + w + movimientoX] = resultado
+            frame[y - 250:y + 100 - 250 , x + 20:x + 120] = resultado
             
         if roi_sombrero.shape[:2] == sombrero_rgb.shape[:2]:
             # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
@@ -144,7 +144,7 @@ while True:
             resultado = cv2.add(fondo, sombrero_fg)
 
             # Reemplazar la región del rostro con la imagen combinada
-            frame[y - 165:y + h + 30 - 165, x - 20:x + w + 40 - 20] = resultado
+            frame[y - 155:y + 10 + h - 155, x - 20:x + w + 20 - 20] = resultado
             
         if roi_bigote.shape[:2] == bigote_rgb.shape[:2]:
             # Invertir la máscara alfa para obtener la parte del rostro donde se aplicará la máscara
@@ -160,7 +160,7 @@ while True:
             resultado = cv2.add(fondo, bigote_fg)
 
             # Reemplazar la región del rostro con la imagen combinada
-            frame[y:y + h + 45, x:x + w + 31] = resultado
+            frame[y + 55:y + 100 + 55, x + 20:x + 100 + 20] = resultado
 
     # Mostrar el frame con la máscara aplicada
     cv2.imshow('Video con mascara', frame)
