@@ -1227,4 +1227,4 @@ def valla_horizontal(texture):
 ~~~
 
 Como se ve cada objeto con texturas:
-![Granero y corrales con texturas](https://github.com/DavidMB4/Graficacion/blob/master/Actividad1Transformaciones/pokeball.png?raw=true)
+![Granero y corrales con texturas](https://github.com/DavidMB4/Graficacion/blob/master/granero%20con%20textura.jpg?raw=true)
