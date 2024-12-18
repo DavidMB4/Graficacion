@@ -210,8 +210,8 @@ def draw_base(texture):
     glEnd()
 ~~~
 
-Esto seria el resultado, sin los animales:
+Esto seria el resultado (sin los animales):
 
-![Resultado de mi parte en el proyecto 2]()
+![Resultado de mi parte en el proyecto 2](https://github.com/DavidMB4/Graficacion/blob/master/Proyecto%202.jpg?raw=true)
 
 El resultado completo esta en el repositorio Proyecto_Graficacion que fue en el repositorio compartido por el equipo.
